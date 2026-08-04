@@ -1,0 +1,23 @@
+# Secrets and local data must never enter version control or an image.
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-journal
+
+# Build and runtime artifacts
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+staticfiles/
+media/
+*.log
+*.err
+
+# Environments and tooling
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
