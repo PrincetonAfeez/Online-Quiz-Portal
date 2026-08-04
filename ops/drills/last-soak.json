@@ -1,0 +1,8 @@
+{
+  "executed_at": "2026-07-23T04:38:34Z",
+  "environment": "staging (docker compose / Postgres)",
+  "result": "pass",
+  "report": "ops/drills/last-drill.json",
+  "mailpit_ui": "http://127.0.0.1:8025",
+  "app": "http://127.0.0.1:8000"
+}

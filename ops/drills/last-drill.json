@@ -1,0 +1,30 @@
+{
+  "executed_at": "2026-07-23T04:38:34Z",
+  "environment": "staging (docker compose / Postgres 17)",
+  "steps": {
+    "migrate": "pass (all migrations applied, including 0007)",
+    "check_deploy": "pass with expected HTTP-staging warnings (SECURE_SSL_REDIRECT / cookie secure off)",
+    "readyz": {"database": "ok", "cache": "ok", "worker": "ok"},
+    "backup_restore": {
+      "engine": "pg_dump custom + pg_restore into quizops_restore_test",
+      "restore_counts": "attempts=0, finalizations=0, users=3",
+      "result": "pass"
+    },
+    "celery_sweep_x5": "pass",
+    "celery_inspect_ping": "pong",
+    "password_reset_smtp": {
+      "backend": "Mailpit SMTP :1025",
+      "subject": "Reset your QuizOps password",
+      "to": "student@example.com",
+      "messages": 2,
+      "result": "pass"
+    },
+    "mfa_enforcement": {
+      "login": "admin",
+      "redirect": "/accounts/mfa/setup/",
+      "result": "pass"
+    }
+  },
+  "result": "pass",
+  "notes": "Local HTTP staging uses SESSION_COOKIE_SECURE=0 CSRF_COOKIE_SECURE=0 SECURE_SSL_REDIRECT=0. Production must keep these on behind TLS."
+}
