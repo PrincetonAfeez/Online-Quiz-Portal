@@ -1,0 +1,59 @@
+[project]
+name = "quizops"
+version = "1.0.0"
+description = "Server-authoritative online assessment engine and daily challenge portal."
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+# `python -m pytest` could not previously find Django's settings (finding 34).
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "tests.py", "tests_*.py"]
+testpaths = ["accounts", "assessments"]
+addopts = "-q --strict-markers"
+filterwarnings = [
+    "error::DeprecationWarning:assessments.*",
+    "error::DeprecationWarning:accounts.*",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["accounts", "assessments", "config"]
+omit = ["*/migrations/*", "*/tests*.py", "*/test_*.py"]
+
+[tool.coverage.report]
+# Branch coverage, set just under the current figure so a real regression fails
+# CI without every defensive `except` becoming a blocker. Raise it when the
+# number rises; never lower it to make a build pass.
+fail_under = 92
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [".ruff_cache", "migrations", "staticfiles"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ", "S", "C4"]
+ignore = [
+    "S101",   # assert is fine in tests
+    "B008",   # Django settings idioms
+    "DJ008",  # __str__ is optional on join/log models with no admin string use
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*" = ["E501", "I001"]
+"*/tests*.py" = ["S105", "S106", "S311"]
+"assessments/services.py" = ["S311"]  # random is for form shuffling, not crypto
+"assessments/management/commands/seed_demo.py" = ["E501"]  # long inline demo prompts
+"config/settings.py" = ["S105"]  # dev-only fallback key, guarded by DEBUG
+"accounts/admin.py" = ["E501"]   # long help-text description string
+# Operator tooling, run by hand against a base URL the operator supplies.
+"ops/*.py" = ["S310"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["accounts", "assessments", "config"]
