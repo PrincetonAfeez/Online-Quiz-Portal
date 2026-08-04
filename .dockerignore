@@ -1,0 +1,26 @@
+# `COPY . .` previously baked the dev secret key and a populated SQLite
+# database into the published image (finding 8).
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-journal
+db.sqlite3
+
+.git/
+.gitignore
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+.venv/
+venv/
+staticfiles/
+media/
+*.log
+*.err
+docs/
+*.md
+!README.md
+.idea/
+.vscode/
