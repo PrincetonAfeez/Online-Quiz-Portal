@@ -1,0 +1,1 @@
+"""Assessments management-command package."""

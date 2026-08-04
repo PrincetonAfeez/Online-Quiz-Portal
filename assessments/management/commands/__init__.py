@@ -1,0 +1,1 @@
+"""Assessments Django management commands."""

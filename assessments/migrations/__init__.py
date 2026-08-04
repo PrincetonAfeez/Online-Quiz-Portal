@@ -1,0 +1,1 @@
+"""Assessments database migrations package."""
