@@ -1,0 +1,133 @@
+# Every application service shares one runtime environment. When only `web`
+# carried the overrides, the worker and beat containers silently fell back to
+# DEBUG=1 and a local SQLite file -- so the expiry sweep ran against an empty
+# database that the web app never saw.
+x-app-env: &app-env
+  DEBUG: "0"
+  DATABASE_URL: postgres://${POSTGRES_USER:-quizops}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-quizops}
+  # Host + password; the app URL-encodes REDIS_PASSWORD into redis:// URLs
+  # (audit R2-08). Do not embed the raw password in REDIS_URL here.
+  REDIS_HOST: redis
+  REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+
+x-app-base: &app-base
+  build: .
+  env_file: .env
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  web:
+    <<: *app-base
+    # Migrations only; static files are already collected into the image.
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000
+             --workers 3 --threads 2 --timeout 30
+             --max-requests 1000 --max-requests-jitter 100
+             --access-logfile - --error-logfile -"
+    environment:
+      <<: *app-env
+      READYZ_REQUIRE_WORKER: "1"
+      # Mailpit SMTP for staging drills (override production SMTP via .env).
+      EMAIL_HOST: ${EMAIL_HOST:-mailpit}
+      EMAIL_PORT: ${EMAIL_PORT:-1025}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-0}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+
+  worker:
+    <<: *app-base
+    command: celery -A config worker -l info --concurrency 2
+    environment:
+      <<: *app-env
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  beat:
+    <<: *app-base
+    # Persist schedule state so a container restart does not re-fire due jobs
+    # (audit F10). Named volumes are root-owned at first mount, so beat runs as
+    # root only long enough to own the schedule dir, then the schedule file is
+    # written there. --pidfile= avoids stale pidfile crashes on restart.
+    user: root
+    command: >
+      sh -c "mkdir -p /var/lib/celery &&
+             celery -A config beat -l info --pidfile= --schedule=/var/lib/celery/celerybeat-schedule"
+    environment:
+      <<: *app-env
+    volumes:
+      - beat-data:/var/lib/celery
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-quizops}
+      POSTGRES_USER: ${POSTGRES_USER:-quizops}
+      # No default: an unset password stops the stack instead of shipping a
+      # well-known credential.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-quizops} -d $${POSTGRES_DB:-quizops}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    # Authenticated broker/cache (audit F10). Password is required in .env.
+    command:
+      - redis-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --requirepass
+      - ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+    restart: unless-stopped
+    # REDISCLI_AUTH avoids shell-quoting the secret in -a "..." (audit R3-05).
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Staging SMTP catcher for password-reset / notification drills.
+  # UI: http://localhost:8025  SMTP: mailpit:1025
+  mailpit:
+    image: axllent/mailpit:v1.22
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+volumes:
+  postgres-data:
+  beat-data:
