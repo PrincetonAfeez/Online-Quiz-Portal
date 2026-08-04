@@ -1,0 +1,1 @@
+"""Accounts management-command package."""
