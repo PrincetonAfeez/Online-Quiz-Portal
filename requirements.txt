@@ -1,0 +1,17 @@
+# Pinned to the versions this build is actually tested against (finding 34).
+Django==6.0.7
+celery==5.6.3
+dj-database-url==3.0.1
+django-redis==5.4.0
+gunicorn==23.0.0
+psycopg[binary]==3.3.4
+pyotp==2.9.0
+redis==6.4.0
+sentry-sdk==2.33.2
+whitenoise==6.11.0
+
+# Development and CI
+pytest==9.1.1
+pytest-cov==7.0.0
+pytest-django==4.12.0
+ruff==0.15.20
