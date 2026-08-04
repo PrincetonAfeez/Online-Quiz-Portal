@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{% if pool %}Edit pool{% else %}New pool{% endif %} - QuizOps{% endblock %}
+{% block content %}
+{% include "instructor/_nav.html" %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>{% if pool %}Edit “{{ pool.name }}”{% else %}New item pool{% endif %}</h1>
+  </div>
+</section>
+
+<form method="post" class="form-card wide">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="message error" role="alert">{{ form.non_field_errors|striptags }}</div>
+  {% endif %}
+  {% for field in form %}
+    <div class="field">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="hint">{{ field.help_text }}</p>{% endif %}
+      {% if field.errors %}<p class="field-error">{{ field.errors|striptags }}</p>{% endif %}
+    </div>
+  {% endfor %}
+
+  <h2>Pool items</h2>
+  {{ formset.management_form }}
+  {% if formset.non_form_errors %}
+    <div class="message error" role="alert">{{ formset.non_form_errors|striptags }}</div>
+  {% endif %}
+  {% for item_form in formset %}
+    <div class="field-row">
+      {% for field in item_form.visible_fields %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<p class="field-error">{{ field.errors|striptags }}</p>{% endif %}
+        </div>
+      {% endfor %}
+      {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+    </div>
+  {% endfor %}
+
+  <div class="answer-actions">
+    <button class="primary-button" type="submit">Save pool</button>
+    <a class="inline-link" href="{% url 'pool_list' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

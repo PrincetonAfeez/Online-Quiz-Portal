@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Privacy - QuizOps{% endblock %}
+{% block content %}
+<section class="legal-page">
+  <h1>Privacy notice</h1>
+  <p class="muted">Template notice — have counsel review before commercial use.</p>
+
+  <h2>What we hold</h2>
+  <ul>
+    <li>Account details: username, email, name.</li>
+    <li>Organization membership, course and cohort enrolment.</li>
+    <li>Assessment records: attempts, answers, save history, scores, timing.</li>
+    <li>Approved timing accommodations, including the reason recorded by your institution.</li>
+    <li>Technical records attached to answer saves: IP address and browser user-agent,
+        kept as assessment-integrity evidence.</li>
+  </ul>
+
+  <h2>Who controls it</h2>
+  <p>
+    Your institution is the data controller. QuizOps processes this data on their
+    instructions. Requests about grades, accommodations or enrolment go to your
+    institution.
+  </p>
+
+  <h2>Your data, exported</h2>
+  <p>
+    <a class="inline-link" href="{% url 'account' %}">Your account page</a> exports
+    everything listed above as JSON, at any time.
+  </p>
+
+  <h2>Deletion, and what survives it</h2>
+  <p>
+    Deleting your account removes your name, email, login and the IP and
+    user-agent records attached to your saves. Your assessment results,
+    finalization records and audit entries are <strong>retained as anonymous
+    records</strong> linked only to an opaque identifier.
+  </p>
+  <p>
+    We do this because grading history is an institutional record that schools
+    are normally required to keep, and because an audit trail that can be erased
+    on request is not an audit trail. If you need the underlying results removed
+    as well, that is your institution's decision to make.
+  </p>
+
+  <h2>Retention</h2>
+  <ul>
+    <li>Assessment records: retained per your institution's policy.</li>
+    <li>Answer-save events including IP/user-agent: 24 months, then the network
+        identifiers are cleared and the revision history is kept.</li>
+    <li>Notifications: cleared when the account is deleted.</li>
+  </ul>
+
+  <h2>Sub-processors and location</h2>
+  <p>
+    QuizOps runs on infrastructure operated by your institution or its hosting
+    provider. It makes no calls to third-party services, sends data to no
+    analytics provider, and includes no third-party trackers. Transactional email
+    is delivered through the SMTP provider your institution configures.
+  </p>
+
+  <h2>Security</h2>
+  <ul>
+    <li>Passwords are stored using Django's PBKDF2 hasher with a per-user salt; we never see your password.</li>
+    <li>Traffic is served over HTTPS with HSTS in production.</li>
+    <li>Answer keys are never sent to the browser during an in-progress attempt.</li>
+    <li>Data is isolated per organization and access is checked on the server for every request.</li>
+  </ul>
+</section>
+{% endblock %}

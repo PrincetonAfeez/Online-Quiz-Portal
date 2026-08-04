@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Your progress - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Your progress</h1>
+  </div>
+  <div class="metric-row">
+    <div class="metric"><span>Assessments taken</span><strong>{{ scored_count }}</strong></div>
+    <div class="metric"><span>Average</span><strong>{{ average_percent }}%</strong></div>
+    <div class="metric"><span>Best</span><strong>{{ best_percent }}%</strong></div>
+    <div class="metric"><span>Streak</span><strong>{{ streak.current_streak|default:0 }}</strong></div>
+  </div>
+</section>
+
+<div class="panel">
+  <div class="panel-head">
+    <h2>History</h2>
+    <span class="muted">{{ total }} attempt{{ total|pluralize }}</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="visually-hidden">Your assessment history</caption>
+      <thead>
+        <tr>
+          <th scope="col">Assessment</th>
+          <th scope="col">Started</th>
+          <th scope="col">Status</th>
+          <th scope="col">Score</th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for attempt in attempts %}
+          <tr>
+            <td>{{ attempt.assignment.title }}</td>
+            <td>{{ attempt.started_at|date:"M j, Y g:i A T" }}</td>
+            <td>{{ attempt.get_status_display }}{% if attempt.is_late %} · late{% endif %}</td>
+            <td>
+              {% if attempt.is_open %}—
+              {% else %}{{ attempt.score }}/{{ attempt.max_score }} ({{ attempt.score_percent }}%)
+              {% endif %}
+            </td>
+            <td>
+              <a class="inline-link"
+                 href="{% if attempt.is_open %}{% url 'attempt_detail' attempt.id %}{% else %}{% url 'result_detail' attempt.id %}{% endif %}">
+                {% if attempt.is_open %}Resume{% else %}View{% endif %}
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">No attempts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Roster import - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Roster import</h1>
+    {% include "admin_console/_nav.html" %}
+  </div>
+</section>
+
+<div class="panel">
+  <p class="muted">
+    Upload a CSV with columns <code>username</code>, <code>email</code>, and optionally
+    <code>first_name</code>, <code>last_name</code>, <code>role</code>, <code>cohort</code>.
+    Nothing is written until you confirm the preview.
+  </p>
+  <form method="post" enctype="multipart/form-data" class="form-card wide">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="hint">{{ field.help_text }}</p>{% endif %}
+        {% if field.errors %}<p class="field-error">{{ field.errors|striptags }}</p>{% endif %}
+      </div>
+    {% endfor %}
+    <button class="secondary-button" type="submit">Preview</button>
+  </form>
+</div>
+
+{% if plan %}
+  {% if plan.header_errors %}
+    <div class="message error" role="alert">
+      <ul>{% for error in plan.header_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <div class="panel">
+    <div class="panel-head"><h2>Preview</h2></div>
+    <p>
+      <strong>{{ plan.create_count }}</strong> account(s) to create ·
+      <strong>{{ plan.update_count }}</strong> to update ·
+      <strong>{{ plan.invalid_rows|length }}</strong> row(s) with problems.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th scope="col">Line</th><th scope="col">Username</th><th scope="col">Email</th>
+              <th scope="col">Role</th><th scope="col">Action</th><th scope="col">Problems</th></tr>
+        </thead>
+        <tbody>
+          {% for row in plan.rows %}
+            <tr class="{% if not row.is_valid %}row-error{% endif %}">
+              <td>{{ row.line }}</td>
+              <td>{{ row.username }}</td>
+              <td>{{ row.email }}</td>
+              <td>{{ row.role }}</td>
+              <td>{% if row.is_valid %}{{ row.action }}{% else %}skip{% endif %}</td>
+              <td>{{ row.errors|join:"; " }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if plan.can_commit and not result %}
+      <form method="post" enctype="multipart/form-data" class="inline-form">
+        {% csrf_token %}
+        <p class="hint">Re-select the same file to confirm the import.</p>
+        {{ form.course }}
+        <input type="file" name="csv_file" accept=".csv" required>
+        <input type="hidden" name="commit" value="1">
+        <button class="primary-button" type="submit">Import {{ plan.valid_rows|length }} row(s)</button>
+      </form>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if result and result.credentials %}
+  <div class="panel">
+    <div class="panel-head"><h2>New accounts</h2></div>
+    <p class="muted">
+      Shown once and never stored in readable form. Share them over a channel you
+      trust, or tell the new users to use “Forgot your password?” instead.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Username</th><th scope="col">Temporary password</th></tr></thead>
+        <tbody>
+          {% for username, password in result.credentials %}
+            <tr><td>{{ username }}</td><td><code>{{ password }}</code></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

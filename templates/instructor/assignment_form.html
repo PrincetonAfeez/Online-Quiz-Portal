@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{% if assignment %}Edit assignment{% else %}New assignment{% endif %} - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>{% if assignment %}Edit “{{ assignment.title }}”{% else %}New assignment{% endif %}</h1>
+    <p class="muted">Times are entered and shown in {{ organization.timezone }}.</p>
+  </div>
+</section>
+
+<form method="post" class="form-card wide">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="message error" role="alert">{{ form.non_field_errors|striptags }}</div>
+  {% endif %}
+  {% for field in form %}
+    <div class="field">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="hint">{{ field.help_text }}</p>{% endif %}
+      {% if field.errors %}<p class="field-error">{{ field.errors|striptags }}</p>{% endif %}
+    </div>
+  {% endfor %}
+  <div class="answer-actions">
+    <button class="primary-button" type="submit">Save assignment</button>
+    <a class="inline-link" href="{% url 'assignment_list' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

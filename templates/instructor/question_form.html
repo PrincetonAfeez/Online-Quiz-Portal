@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{% if question %}Edit question{% else %}New question{% endif %} - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ quiz.title }}</p>
+    <h1>{% if question %}Edit question{% else %}New question{% endif %}</h1>
+  </div>
+</section>
+
+<form method="post" class="form-card wide">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="message error">{{ form.non_field_errors }}</div>{% endif %}
+  {% for field in form %}
+    <div class="field">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="hint">{{ field.help_text }}</p>{% endif %}
+      {% if field.errors %}<p class="field-error">{{ field.errors|striptags }}</p>{% endif %}
+    </div>
+  {% endfor %}
+
+  <fieldset class="choice-editor">
+    <legend>Choices</legend>
+    <p class="hint">
+      Mark the correct answer(s). Single-answer and true/false questions need exactly
+      one; multi-select needs at least one correct and one incorrect. Leave unused
+      rows blank — they are ignored. Choices appear in the order entered here.
+    </p>
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+      <div class="message error" role="alert">{{ formset.non_form_errors|striptags }}</div>
+    {% endif %}
+    <table class="choice-table">
+      <thead>
+        <tr><th scope="col">Choice text</th><th scope="col">Correct</th><th scope="col">Remove</th></tr>
+      </thead>
+      <tbody>
+        {% for choice_form in formset %}
+          <tr>
+            {% for hidden in choice_form.hidden_fields %}{{ hidden }}{% endfor %}
+            <td>{{ choice_form.text }}{% if choice_form.text.errors %}
+                <p class="field-error">{{ choice_form.text.errors|striptags }}</p>{% endif %}</td>
+            <td>{{ choice_form.is_correct }}</td>
+            <td>{% if choice_form.instance.pk %}{{ choice_form.DELETE }}{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </fieldset>
+
+  <div class="answer-actions">
+    <button class="primary-button" type="submit">Save question</button>
+    <a class="inline-link" href="{% url 'quiz_detail' quiz.id %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

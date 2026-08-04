@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}People - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>People</h1>
+    {% include "admin_console/_nav.html" %}
+  </div>
+  <a class="primary-button" href="{% url 'roster_import' %}">Import roster</a>
+</section>
+
+<div class="panel">
+  <form method="get" class="inline-form">
+    <label class="visually-hidden" for="q">Search</label>
+    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Name, username or email">
+    <label class="visually-hidden" for="role">Role</label>
+    <select id="role" name="role">
+      <option value="">All roles</option>
+      {% for value, label in roles %}
+        <option value="{{ value }}" {% if role == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="secondary-button" type="submit">Filter</button>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th scope="col">User</th><th scope="col">Email</th><th scope="col">Role</th>
+            <th scope="col">Status</th><th scope="col">Action</th></tr>
+      </thead>
+      <tbody>
+        {% for membership in memberships %}
+          <tr>
+            <td>{{ membership.user.get_full_name|default:membership.user.username }}
+                <span class="muted">({{ membership.user.username }})</span></td>
+            <td>{{ membership.user.email }}</td>
+            <td>{{ membership.get_role_display }}</td>
+            <td>{% if membership.is_active %}Active{% else %}<span class="muted">Inactive</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'toggle_membership' membership.id %}">
+                {% csrf_token %}
+                <button class="link-button" type="submit">
+                  {% if membership.is_active %}Deactivate{% else %}Reactivate{% endif %}
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">No people match that filter.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

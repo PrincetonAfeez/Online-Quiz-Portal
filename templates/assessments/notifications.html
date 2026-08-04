@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Notifications - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Notifications</h1>
+  </div>
+  <form method="post" action="{% url 'mark_notifications_read' %}">
+    {% csrf_token %}
+    <button class="secondary-button" type="submit">Mark all read</button>
+  </form>
+</section>
+
+<div class="panel">
+  <div class="item-list">
+    {% for note in notifications %}
+      <article class="list-row {% if not note.read_at %}unread{% endif %}">
+        <div>
+          <h3>{% if note.url %}<a class="inline-link" href="{{ note.url }}">{{ note.title }}</a>{% else %}{{ note.title }}{% endif %}</h3>
+          <p>{{ note.body }}</p>
+          <p class="muted">{{ note.created_at|date:"M j, g:i A T" }}</p>
+        </div>
+        {% if not note.read_at %}<span class="pill">New</span>{% endif %}
+      </article>
+    {% empty %}
+      <p class="muted">Nothing yet. Reminders about due assessments appear here.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

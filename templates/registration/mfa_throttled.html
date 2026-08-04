@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Too many attempts - QuizOps{% endblock %}
+{% block content %}
+<section class="form-card">
+  <h1>Too many authentication codes</h1>
+  <p class="muted">
+    Wait {{ retry_after_seconds }} seconds before trying another code.
+  </p>
+  <p><a class="inline-link" href="{% url 'mfa_verify' %}">Try again</a></p>
+</section>
+{% endblock %}

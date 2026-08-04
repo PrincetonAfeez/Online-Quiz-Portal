@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ quiz.title }} - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }} · draft</p>
+    <h1>{{ quiz.title }}</h1>
+    {% include "instructor/_nav.html" %}
+  </div>
+  <div class="answer-actions">
+    <a class="secondary-button" href="{% url 'quiz_edit' quiz.id %}">Settings</a>
+    <a class="secondary-button" href="{% url 'question_create' quiz.id %}">Add question</a>
+    <form method="post" action="{% url 'quiz_publish' quiz.id %}">
+      {% csrf_token %}
+      <button class="primary-button" type="submit" {% if not can_publish %}disabled{% endif %}>
+        Publish version
+      </button>
+    </form>
+  </div>
+</section>
+
+{% if problems %}
+  <div class="message error" role="alert">
+    <strong>Not ready to publish:</strong>
+    <ul>{% for problem in problems %}<li>{{ problem }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+
+<section class="split-grid">
+  <div class="panel">
+    <div class="panel-head"><h2>Questions</h2></div>
+    <div class="item-list">
+      {% for question in questions %}
+        <article class="list-row">
+          <div>
+            <h3>{{ forloop.counter }}. {{ question.prompt|truncatechars:90 }}</h3>
+            <p>{{ question.get_question_type_display }} · {{ question.points }} pts ·
+               {{ question.choices.count }} choices</p>
+          </div>
+          <div class="answer-actions">
+            <a class="inline-link" href="{% url 'question_edit' quiz.id question.id %}">Edit</a>
+            <form method="post" action="{% url 'question_delete' quiz.id question.id %}">
+              {% csrf_token %}
+              <button class="link-button danger" type="submit">Delete</button>
+            </form>
+          </div>
+        </article>
+      {% empty %}
+        <p class="muted">No questions yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Published versions</h2></div>
+    <p class="muted">
+      Published versions are immutable. Editing this draft never changes a version
+      a student has already been served.
+    </p>
+    <div class="item-list">
+      {% for version in versions %}
+        <article class="list-row">
+          <div>
+            <h3>Version {{ version.version_number }}</h3>
+            <p>Published {{ version.published_at|date:"M j, Y g:i A T" }} by {{ version.published_by }}</p>
+          </div>
+          <a class="inline-link" href="{% url 'version_preview' version.id %}">Preview</a>
+        </article>
+      {% empty %}
+        <p class="muted">Nothing published yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

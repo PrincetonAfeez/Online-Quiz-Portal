@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Analytics - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ assignment.title }}</p>
+    <h1>Analytics</h1>
+  </div>
+  <div class="answer-actions">
+    <a class="secondary-button" href="{% url 'gradebook' assignment.id %}">Gradebook</a>
+    <a class="primary-button" href="{% url 'export_gradebook' assignment.id %}?kind=items">Export item analysis</a>
+  </div>
+</section>
+
+<section class="metric-row wide">
+  <div class="metric"><span>Finalized attempts</span><strong>{{ analytics.finalized_attempts }}</strong></div>
+  <div class="metric"><span>Students</span><strong>{{ analytics.students_attempted }}</strong></div>
+  <div class="metric"><span>Mean</span><strong>{{ analytics.mean_percent }}%</strong></div>
+  <div class="metric"><span>Median</span><strong>{{ analytics.median_percent }}%</strong></div>
+  {% if analytics.pass_rate is not None %}
+    <div class="metric"><span>Pass rate</span><strong>{{ analytics.pass_rate }}%</strong></div>
+  {% endif %}
+  <div class="metric"><span>Late</span><strong>{{ analytics.late_count }}</strong></div>
+</section>
+
+<section class="split-grid">
+  <div class="panel">
+    <div class="panel-head"><h2>Score distribution</h2></div>
+    <ul class="bar-chart">
+      {% for bar in bars %}
+        <li>
+          <span class="bar-label">{{ bar.label }}%</span>
+          <span class="bar-track"><span class="bar-fill" style="width: {{ bar.percent }}%"></span></span>
+          <span class="bar-count">{{ bar.count }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Items needing review</h2></div>
+    {% if flagged %}
+      <div class="item-list">
+        {% for item in flagged %}
+          <article class="list-row">
+            <div>
+              <h3>{{ item.prompt|truncatechars:80 }}</h3>
+              <p>{{ item.difficulty_label }} · p={{ item.difficulty }} · discrimination={{ item.discrimination }}</p>
+              <ul>{% for flag in item.flags %}<li class="muted">{{ flag }}</li>{% endfor %}</ul>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">No items flagged. Statistics need at least five finalized attempts.</p>
+    {% endif %}
+  </div>
+</section>
+
+<div class="panel">
+  <div class="panel-head"><h2>All items</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Question</th><th scope="col">Answered</th><th scope="col">Correct</th>
+          <th scope="col">Difficulty</th><th scope="col">Discrimination</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in analytics.items %}
+          <tr>
+            <td>{{ item.prompt|truncatechars:70 }}</td>
+            <td>{{ item.responses }}</td>
+            <td>{{ item.correct }}</td>
+            <td>{{ item.difficulty }} <span class="muted">({{ item.difficulty_label }})</span></td>
+            <td>{{ item.discrimination }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">No finalized attempts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Gradebook - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ assignment.title }}</p>
+    <h1>Gradebook</h1>
+    <p class="muted">Best scored attempt per student. In-progress work is not graded.</p>
+  </div>
+  <div class="answer-actions">
+    <a class="secondary-button" href="{% url 'assignment_analytics' assignment.id %}">Analytics</a>
+    <a class="primary-button" href="{% url 'export_gradebook' assignment.id %}">Export CSV</a>
+  </div>
+</section>
+
+<div class="panel">
+  <div class="table-wrap">
+    <table>
+      <caption class="visually-hidden">Gradebook for {{ assignment.title }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Student</th>
+          <th scope="col">Attempts</th>
+          <th scope="col">Best score</th>
+          <th scope="col">Percent</th>
+          {% if pass_mark %}<th scope="col">Outcome</th>{% endif %}
+          <th scope="col">Late</th>
+          <th scope="col">Finalized</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.student_name }} <span class="muted">({{ row.username }})</span></td>
+            <td>{{ row.attempts }}</td>
+            <td>{{ row.best_score }}</td>
+            <td>{{ row.best_percent }}%</td>
+            {% if pass_mark %}
+              <td><strong class="{% if row.passed %}pass{% else %}fail{% endif %}">
+                {% if row.passed %}Pass{% else %}Below {{ pass_mark }}%{% endif %}</strong></td>
+            {% endif %}
+            <td>{% if row.is_late %}Yes{% else %}—{% endif %}</td>
+            <td>{{ row.finalized_at|date:"M j, g:i A T"|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">No finalized attempts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

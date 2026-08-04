@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Your account - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ user.username }}</p>
+    <h1>Your account</h1>
+  </div>
+</section>
+
+<section class="split-grid">
+  <div class="panel">
+    <div class="panel-head"><h2>Memberships</h2></div>
+    <div class="item-list">
+      {% for membership in memberships %}
+        <article class="list-row">
+          <div>
+            <h3>{{ membership.organization.name }}</h3>
+            <p>{{ membership.get_role_display }}{% if not membership.is_active %} · inactive{% endif %}</p>
+          </div>
+        </article>
+      {% empty %}
+        <p class="muted">You are not a member of any organization.</p>
+      {% endfor %}
+    </div>
+    <div class="panel-head"><h2>Security</h2></div>
+    <p><a class="inline-link" href="{% url 'password_change' %}">Change your password</a></p>
+    {% if mfa_required %}
+      {% if mfa_enabled %}
+        <p><a class="inline-link" href="{% url 'mfa_setup' %}">Rotate authenticator</a></p>
+      {% else %}
+        <p><a class="inline-link" href="{% url 'mfa_setup' %}">Enable two-factor authentication</a></p>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Your data</h2></div>
+    <p class="muted">
+      Download everything we hold about you: account details, attempts, answers,
+      save history, streaks and audit events, as JSON.
+    </p>
+    <form method="post" action="{% url 'export_my_data' %}">
+      {% csrf_token %}
+      <button class="secondary-button" type="submit">Download my data</button>
+    </form>
+
+    <div class="panel-head"><h2>Delete your account</h2></div>
+    <p class="muted">
+      This removes your name, email and login. Your assessment results and their
+      audit records are retained as anonymous entries, because institutions are
+      normally required to keep grading history. This cannot be undone.
+    </p>
+    <form method="post" action="{% url 'delete_my_account' %}" class="form-card">
+      {% csrf_token %}
+      <label for="delete-password">Confirm your password</label>
+      <input id="delete-password" type="password" name="password" autocomplete="current-password" required>
+      <label for="delete-confirm">Type <code>DELETE</code> to confirm</label>
+      <input id="delete-confirm" type="text" name="confirm" required>
+      <button class="primary-button danger" type="submit">Delete my account</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

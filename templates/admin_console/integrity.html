@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Integrity - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Assessment integrity</h1>
+    {% include "admin_console/_nav.html" %}
+    <p class="muted">
+      Diagnostics recorded by the engine. Most entries are ordinary — a rejected
+      late save is the deadline working as intended.
+    </p>
+  </div>
+</section>
+
+<section class="metric-row wide">
+  {% for row in summary %}
+    <div class="metric"><span>{{ row.label }}</span><strong>{{ row.total }}</strong></div>
+  {% empty %}
+    <div class="metric"><span>Events</span><strong>0</strong></div>
+  {% endfor %}
+  <div class="metric"><span>Voided attempts</span><strong>{{ voided }}</strong></div>
+</section>
+
+<div class="panel">
+  <form method="get" class="inline-form">
+    <label class="visually-hidden" for="assignment">Assignment</label>
+    <select id="assignment" name="assignment">
+      <option value="">All assignments</option>
+      {% for assignment in assignments %}
+        <option value="{{ assignment.id }}"
+          {% if selected_assignment == assignment.id|stringformat:"s" %}selected{% endif %}>
+          {{ assignment.title }}
+        </option>
+      {% endfor %}
+    </select>
+    <button class="secondary-button" type="submit">Filter</button>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">When</th>
+          <th scope="col">Event</th>
+          <th scope="col">Student</th>
+          <th scope="col">Assignment</th>
+          <th scope="col">Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in events %}
+          <tr>
+            <td>{{ event.created_at|date:"M j, g:i:s A T" }}</td>
+            <td>{{ event.get_kind_display }}</td>
+            <td>{% if event.attempt %}{{ event.attempt.student.username }}{% else %}—{% endif %}</td>
+            <td>{% if event.attempt %}{{ event.attempt.assignment.title }}{% else %}—{% endif %}</td>
+            <td class="muted">{{ event.detail }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">No integrity events recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

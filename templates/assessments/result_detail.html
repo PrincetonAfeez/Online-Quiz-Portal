@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Result - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ attempt.assignment.title }}</p>
+    <h1>Result</h1>
+  </div>
+  <div class="metric-row">
+    {% if visibility.show_score %}
+      <div class="metric">
+        <span>Score</span>
+        <strong>{{ attempt.score }}/{{ attempt.max_score }}</strong>
+      </div>
+      <div class="metric">
+        <span>Percent</span>
+        <strong>{{ attempt.score_percent }}%</strong>
+      </div>
+      {% if pass_mark %}
+        <div class="metric">
+          <span>Outcome</span>
+          <strong class="{% if passed %}pass{% else %}fail{% endif %}">
+            {% if passed %}Pass{% else %}Below {{ pass_mark }}%{% endif %}
+          </strong>
+        </div>
+      {% endif %}
+    {% endif %}
+    <div class="metric">
+      <span>Status</span>
+      <strong>{{ attempt.get_status_display }}{% if attempt.is_late %} · Late{% endif %}</strong>
+    </div>
+  </div>
+</section>
+
+{% if visibility.show_answer_key %}
+  <section class="question-stack narrow">
+    {% for row in rows %}
+      <article class="question-panel {% if row.correct %}correct{% else %}incorrect{% endif %}">
+        <div class="question-head">
+          <h2>Question {{ forloop.counter }}</h2>
+          <span class="pill">{% if row.correct %}Correct{% else %}Review{% endif %}</span>
+        </div>
+        <p class="prompt">{{ row.item.prompt }}</p>
+        <ul class="result-choices">
+          {% for choice in row.choices %}
+            <li class="{% if choice.is_correct %}is-correct{% endif %} {% if choice.id in row.selected_ids %}is-selected{% endif %}">
+              <span>{{ choice.text }}</span>
+              {% if choice.id in row.selected_ids %}<strong>Selected</strong>{% endif %}
+              {% if choice.is_correct %}<strong>Correct</strong>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+        {% if row.item.explanation %}<p class="explanation">{{ row.item.explanation }}</p>{% endif %}
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <section class="empty-state">
+    {% if visibility.reason == 'manual_release_withheld' %}
+      <h2>Results are not released yet</h2>
+      <p>Your instructor releases results for this assessment manually.</p>
+    {% elif visibility.reason == 'retake_available' %}
+      <h2>Answers stay hidden while a retake is available</h2>
+      <p>
+        You have used {{ visibility.extras.attempts_used }} of
+        {{ visibility.extras.attempt_limit }} attempts. Per-question answers are shown once
+        no further attempt is available or the assessment closes.
+      </p>
+    {% elif visibility.reason == 'voided' %}
+      <h2>This attempt was voided</h2>
+      <p>Contact your instructor if you believe this is a mistake.</p>
+    {% elif visibility.reason == 'in_progress' %}
+      <h2>This attempt is still open</h2>
+      <p><a class="inline-link" href="{% url 'attempt_detail' attempt.id %}">Return to the attempt</a>.</p>
+    {% else %}
+      <h2>Results are not available</h2>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

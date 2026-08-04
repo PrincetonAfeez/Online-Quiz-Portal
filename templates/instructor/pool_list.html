@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Item pools - QuizOps{% endblock %}
+{% block content %}
+{% include "instructor/_nav.html" %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Item pools</h1>
+    <p class="muted">Pools feed sampled-form assignments. Blueprint counts are optional.</p>
+  </div>
+  <a class="primary-button" href="{% url 'pool_create' %}">New pool</a>
+</section>
+
+{% if pools %}
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Items</th>
+      <th>Draw</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pool in pools %}
+    <tr>
+      <td>{{ pool.name }}</td>
+      <td>{{ pool.item_count }}</td>
+      <td>{{ pool.required_question_count }}</td>
+      <td><a href="{% url 'pool_edit' pool.id %}">Edit</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No pools yet. Create one before publishing a sampled assignment.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Daily Challenge - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Daily Coding Challenge</h1>
+    <p class="muted">Release and streak credit are computed in {{ organization.timezone }}.</p>
+  </div>
+  <div class="metric-row">
+    <div class="metric"><span>Current</span><strong>{{ streak.current_streak|default:0 }}</strong></div>
+    <div class="metric"><span>Longest</span><strong>{{ streak.longest_streak|default:0 }}</strong></div>
+  </div>
+</section>
+
+{% if challenge %}
+  <section class="daily-band large">
+    <div>
+      <p class="eyebrow">{{ challenge.release_date }}</p>
+      <h2>{{ challenge.title }}</h2>
+      {% if participation %}
+        <p class="muted">
+          Completed{% if participation.earned_credit %} · streak credit earned{% else %} · no streak credit{% endif %}.
+        </p>
+      {% endif %}
+    </div>
+    {% if participation %}
+      <a class="primary-button" href="{% url 'result_detail' participation.attempt_id %}">View result</a>
+    {% else %}
+      <form method="post" action="{% url 'start_daily_challenge' challenge.id %}">
+        {% csrf_token %}
+        <button class="primary-button" type="submit">Start today's challenge</button>
+      </form>
+    {% endif %}
+  </section>
+{% else %}
+  <section class="empty-state">
+    <h2>No challenge is live today</h2>
+    <p>Daily challenge release is computed in {{ organization.timezone }}.</p>
+  </section>
+{% endif %}
+
+{% if archive %}
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Archive</h2>
+      <span class="muted">Practice only — archived challenges never affect streaks.</span>
+    </div>
+    <div class="item-list">
+      {% for past in archive %}
+        <article class="list-row">
+          <div>
+            <h3>{{ past.title }}</h3>
+            <p>{{ past.release_date }}</p>
+          </div>
+          <form method="post" action="{% url 'start_practice_challenge' past.id %}">
+            {% csrf_token %}
+            <button class="secondary-button" type="submit">Practice</button>
+          </form>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+{% endblock %}

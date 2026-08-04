@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Log in - QuizOps{% endblock %}
+{% block content %}
+<section class="auth-panel">
+  <div>
+    <p class="eyebrow">Assessment workspace</p>
+    <h1>Sign in to QuizOps</h1>
+  </div>
+  <form method="post" class="form-card">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="message error" role="alert">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <label for="{{ form.username.id_for_label }}">Username</label>
+    {{ form.username }}
+    <label for="{{ form.password.id_for_label }}">Password</label>
+    {{ form.password }}
+    <button class="primary-button" type="submit">Log in</button>
+    <p class="hint"><a class="inline-link" href="{% url 'password_reset' %}">Forgot your password?</a></p>
+    {% comment %}
+    Demo credentials belong in the seed command's output, not on a page that may
+    be served in production (finding 42).
+    {% endcomment %}
+  </form>
+</section>
+{% endblock %}

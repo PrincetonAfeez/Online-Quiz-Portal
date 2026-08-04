@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Preview v{{ version.version_number }} - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ version.title }}</p>
+    <h1>Version {{ version.version_number }} preview</h1>
+    <p class="muted">Exactly what a student is served, with the answer key shown.</p>
+  </div>
+  <a class="secondary-button" href="{% url 'quiz_detail' version.quiz_id %}">Back to draft</a>
+</section>
+
+<section class="question-stack narrow">
+  {% for question in questions %}
+    <article class="question-panel">
+      <div class="question-head">
+        <h2>Question {{ forloop.counter }}</h2>
+        <span class="pill">{{ question.points }} pts · {{ question.get_question_type_display }}</span>
+      </div>
+      <p class="prompt">{{ question.prompt }}</p>
+      <ul class="result-choices">
+        {% for choice in question.version_choices.all %}
+          <li class="{% if choice.is_correct %}is-correct{% endif %}">
+            <span>{{ choice.text }}</span>
+            {% if choice.is_correct %}<strong>Correct</strong>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      {% if question.explanation %}<p class="explanation">{{ question.explanation }}</p>{% endif %}
+    </article>
+  {% endfor %}
+</section>
+{% endblock %}

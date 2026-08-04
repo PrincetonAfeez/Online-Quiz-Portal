@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }} · {{ membership.get_role_display }}</p>
+    <h1>Assessment Dashboard</h1>
+    <p class="muted">Times shown in {{ organization.timezone }}.</p>
+  </div>
+  <div class="metric-row">
+    <div class="metric">
+      <span>Current streak</span>
+      <strong>{{ streak.current_streak|default:0 }}</strong>
+    </div>
+    <div class="metric">
+      <span>Longest streak</span>
+      <strong>{{ streak.longest_streak|default:0 }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="split-grid">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Available Assessments</h2>
+      {% if is_instructor %}<a class="small-link" href="{% url 'instructor_dashboard' %}">Gradebook</a>{% endif %}
+    </div>
+    <div class="item-list">
+      {# Only assignments that are open *and* this student is eligible for. #}
+      {% for assignment in assignments %}
+        <article class="list-row">
+          <div>
+            <h3>{{ assignment.title }}</h3>
+            <p>{{ assignment.get_form_mode_display }} · Opens {{ assignment.opens_at|date:"M j, g:i A T" }}</p>
+            {% if assignment.due_at %}
+              <p class="{% if assignment.due_at < now %}overdue{% endif %}">
+                Due {{ assignment.due_at|date:"M j, g:i A T" }}
+                {% if assignment.due_at < now %}
+                  · {% if assignment.allow_late %}late attempts accepted{% else %}closed to new attempts{% endif %}
+                {% endif %}
+              </p>
+            {% endif %}
+            {% if assignment.closes_at %}<p>Closes {{ assignment.closes_at|date:"M j, g:i A T" }}</p>{% endif %}
+          </div>
+          <form method="post" action="{% url 'start_assignment' assignment.id %}">
+            {% csrf_token %}
+            <button class="icon-button" title="Start assessment" aria-label="Start {{ assignment.title }}">▶</button>
+          </form>
+        </article>
+      {% empty %}
+        <p class="muted">No assessments are open to you right now.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Recent Attempts</h2>
+      <a class="small-link" href="{% url 'daily_challenge' %}">Daily</a>
+    </div>
+    <div class="item-list">
+      {% for attempt in attempts %}
+        <a class="list-row linked-row" href="{% if attempt.is_open %}{% url 'attempt_detail' attempt.id %}{% else %}{% url 'result_detail' attempt.id %}{% endif %}">
+          <div>
+            <h3>{{ attempt.assignment.title }}</h3>
+            <p>{{ attempt.get_status_display }} · Started {{ attempt.started_at|date:"M j, g:i A T" }}</p>
+          </div>
+          {% if attempt.is_open %}
+            <strong class="muted">In progress</strong>
+          {% else %}
+            <strong>{{ attempt.score }}/{{ attempt.max_score }}</strong>
+          {% endif %}
+        </a>
+      {% empty %}
+        <p class="muted">Attempts will appear here as you work.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if challenge %}
+<section class="daily-band">
+  <div>
+    <p class="eyebrow">Daily Coding Challenge · {{ challenge.release_date }}</p>
+    <h2>{{ challenge.title }}</h2>
+  </div>
+  <a class="primary-button" href="{% url 'daily_challenge' %}">Open</a>
+</section>
+{% endif %}
+{% endblock %}

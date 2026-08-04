@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Accommodations - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Timing accommodations</h1>
+    {% include "admin_console/_nav.html" %}
+    <p class="muted">
+      Applied automatically when an attempt starts, and recorded on the attempt.
+      Reasons are stored for audit and never shown to students.
+    </p>
+  </div>
+</section>
+
+<section class="split-grid">
+  <div class="panel">
+    <div class="panel-head"><h2>Current accommodations</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Student</th>
+            <th scope="col">Scope</th>
+            <th scope="col">Extra time</th>
+            <th scope="col">Window</th>
+            <th scope="col">Status</th>
+            <th scope="col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td>{{ row.student.username }}</td>
+              <td>
+                {% if row.cohort %}{{ row.cohort }}
+                {% elif row.course %}{{ row.course }}
+                {% else %}All assessments{% endif %}
+              </td>
+              <td>{{ row.multiplier }}×{% if row.extra_minutes %} + {{ row.extra_minutes }}m{% endif %}</td>
+              <td>
+                {% if row.effective_until %}until {{ row.effective_until|date:"M j, Y" }}
+                {% else %}no end date{% endif %}
+              </td>
+              <td>{% if row.is_active %}Active{% else %}<span class="muted">Revoked</span>{% endif %}</td>
+              <td>
+                {% if row.is_active %}
+                  <form method="post" action="{% url 'revoke_accommodation' row.id %}">
+                    {% csrf_token %}
+                    <button class="link-button" type="submit">Revoke</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6">No accommodations recorded.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Grant an accommodation</h2></div>
+    <form method="post" class="form-card">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="message error" role="alert">{{ form.non_field_errors|striptags }}</div>
+      {% endif %}
+      {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="hint">{{ field.help_text }}</p>{% endif %}
+          {% if field.errors %}<p class="field-error">{{ field.errors|striptags }}</p>{% endif %}
+        </div>
+      {% endfor %}
+      <button class="primary-button" type="submit">Grant accommodation</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}QuizOps{% endblock %}</title>
+  {% comment %}
+  htmx reads this before it processes any request. Without the 409/410 entries
+  it silently discards conflict and expiry fragments, so a student sees a
+  working form that saves nothing (finding 22).
+  {% endcomment %}
+  <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"409","swap":true,"error":false},{"code":"410","swap":true,"error":false},{"code":"400","swap":true,"error":false},{"code":"429","swap":true,"error":false},{"code":"[45]..","swap":true,"error":true}]}'>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'js/vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'js/app.js' %}" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="brand" href="{% url 'dashboard' %}">QuizOps</a>
+    <nav>
+      {% if user.is_authenticated %}
+        {% if can_switch_organization %}
+          <form method="post" action="{% url 'switch_organization' %}" class="org-switcher">
+            {% csrf_token %}
+            <label class="visually-hidden" for="organization-select">Organization</label>
+            <select id="organization-select" name="organization_id" data-autosubmit>
+              {% for membership in user_memberships %}
+                <option value="{{ membership.organization_id }}"
+                  {% if active_organization and membership.organization_id == active_organization.id %}selected{% endif %}>
+                  {{ membership.organization.name }} · {{ membership.get_role_display }}
+                </option>
+              {% endfor %}
+            </select>
+            <noscript><button class="link-button" type="submit">Switch</button></noscript>
+          </form>
+        {% elif active_organization %}
+          <span class="org-label">{{ active_organization.name }}</span>
+        {% endif %}
+        <a href="{% url 'my_progress' %}">Progress</a>
+        <a href="{% url 'daily_challenge' %}">Daily</a>
+        <a href="{% url 'notifications' %}">
+          Notifications{% if unread_notifications %} <span class="pill">{{ unread_notifications }}</span>{% endif %}
+        </a>
+        {# Only show what the viewer can actually open (finding 41). #}
+        {% if is_instructor %}
+          <a href="{% url 'instructor_dashboard' %}">Instructor</a>
+          <a href="{% url 'accommodations' %}">Manage</a>
+        {% endif %}
+        <a href="{% url 'account' %}">Account</a>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="link-button" type="submit">Log out</button>
+        </form>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="page" id="main">
+    {% if messages %}
+      <div class="messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <div id="connection-banner" class="connection-banner" role="alert" hidden>
+      <strong>Not saved.</strong> Your last change did not reach the server. Check your
+      connection — do not close this page.
+    </div>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <a href="{% url 'terms' %}">Terms</a>
+    <a href="{% url 'privacy' %}">Privacy</a>
+    <span class="muted">QuizOps</span>
+  </footer>
+</body>
+</html>

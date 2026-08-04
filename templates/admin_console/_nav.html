@@ -1,0 +1,8 @@
+<nav class="subnav" aria-label="Management sections">
+  {% if is_org_admin %}<a href="{% url 'roster_import' %}">Roster import</a>
+  <a href="{% url 'people' %}">People</a>{% endif %}
+  <a href="{% url 'accommodations' %}">Accommodations</a>
+  <a href="{% url 'question_bank' %}">Question bank</a>
+  <a href="{% url 'integrity_dashboard' %}">Integrity</a>
+  {% if is_org_admin %}<a href="{% url 'admin_activity' %}">Activity log</a>{% endif %}
+</nav>

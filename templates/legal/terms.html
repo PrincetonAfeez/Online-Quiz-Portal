@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Terms - QuizOps{% endblock %}
+{% block content %}
+<section class="legal-page">
+  <h1>Terms of use</h1>
+  <p class="muted">Template terms — have counsel review before commercial use.</p>
+
+  <h2>Your account</h2>
+  <p>
+    Your account is issued by your institution and is personal to you. Do not
+    share credentials. You are responsible for activity under your account.
+  </p>
+
+  <h2>Assessment integrity</h2>
+  <p>
+    Attempts are timed and scored by the server. Deadlines, attempt limits and
+    result release are decided server-side; the countdown in your browser is a
+    display only. Attempting to submit answers outside a permitted window, to
+    access another person's attempt, or to obtain answer keys is a breach of
+    these terms and is reported to your institution.
+  </p>
+
+  <h2>Availability</h2>
+  <p>
+    QuizOps is provided on a best-effort basis unless your institution holds a
+    separate service agreement. Maintenance is scheduled outside published
+    assessment windows where possible.
+  </p>
+
+  <h2>Accommodations</h2>
+  <p>
+    Timing accommodations are configured by your institution and applied
+    automatically when an attempt starts. If your approved accommodation is not
+    reflected on the attempt screen, stop and contact your institution before
+    continuing.
+  </p>
+
+  <h2>Acceptable use</h2>
+  <ul>
+    <li>No automated access, scraping, or load generation against the service.</li>
+    <li>No attempt to bypass rate limits, authentication, or tenant isolation.</li>
+    <li>No redistribution of assessment content without your institution's permission.</li>
+  </ul>
+
+  <h2>Data</h2>
+  <p>
+    Handling of personal data is described in the
+    <a class="inline-link" href="{% url 'privacy' %}">privacy notice</a>.
+  </p>
+</section>
+{% endblock %}

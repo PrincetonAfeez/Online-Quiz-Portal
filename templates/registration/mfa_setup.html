@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Set up two-factor authentication - QuizOps{% endblock %}
+{% block content %}
+<section class="form-card">
+  <h1>{% if rotating %}Rotate authenticator{% else %}Set up two-factor authentication{% endif %}</h1>
+  <p class="muted">
+    Organization admins and platform operators must enable an authenticator app
+    before continuing.
+  </p>
+  <ol>
+    <li>Add this account in your authenticator app using the secret below (or the otpauth URI).</li>
+    <li>Enter the six-digit code it shows to confirm.</li>
+  </ol>
+  <p><strong>Secret:</strong> <code>{{ secret }}</code></p>
+  <p class="hint"><code>{{ provisioning_uri }}</code></p>
+  <form method="post">
+    {% csrf_token %}
+    {% if rotating %}
+    <div class="field">
+      <label for="current_code">Current authenticator code</label>
+      <input id="current_code" name="current_code" inputmode="numeric" autocomplete="one-time-code" required maxlength="8">
+    </div>
+    {% endif %}
+    <div class="field">
+      <label for="code">New authentication code</label>
+      <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" required maxlength="8">
+    </div>
+    <button class="primary-button" type="submit">{% if rotating %}Replace authenticator{% else %}Enable two-factor{% endif %}</button>
+  </form>
+</section>
+{% endblock %}

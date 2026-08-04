@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Quizzes - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Quizzes</h1>
+    {% include "instructor/_nav.html" %}
+  </div>
+  <a class="primary-button" href="{% url 'quiz_create' %}">New quiz</a>
+</section>
+
+<div class="panel">
+  <div class="item-list">
+    {% for quiz in quizzes %}
+      <article class="list-row">
+        <div>
+          <h3><a class="inline-link" href="{% url 'quiz_detail' quiz.id %}">{{ quiz.title }}</a></h3>
+          <p>
+            {{ quiz.question_count }} question{{ quiz.question_count|pluralize }} ·
+            {{ quiz.version_count }} published version{{ quiz.version_count|pluralize }}
+            {% if quiz.time_limit_minutes %}· {{ quiz.time_limit_minutes }} min{% else %}· untimed{% endif %}
+          </p>
+        </div>
+        <span class="pill">{{ quiz.get_feedback_policy_display }}</span>
+      </article>
+    {% empty %}
+      <p class="muted">No quizzes yet. Create one to get started.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

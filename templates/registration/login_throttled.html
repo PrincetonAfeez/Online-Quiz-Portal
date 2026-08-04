@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Too many attempts - QuizOps{% endblock %}
+{% block content %}
+<section class="empty-state">
+  <h1>Too many sign-in attempts</h1>
+  <p>For your account's safety, sign-in is paused for a few minutes.</p>
+  <p class="muted">
+    Try again in about {{ retry_after_seconds|floatformat:0 }} seconds, or
+    <a class="inline-link" href="{% url 'password_reset' %}">reset your password</a>.
+  </p>
+</section>
+{% endblock %}

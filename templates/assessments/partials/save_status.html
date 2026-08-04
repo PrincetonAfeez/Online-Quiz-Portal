@@ -1,0 +1,19 @@
+{% comment %}
+Accessible save fragment: saved / conflict / expired / invalid / locked.
+Always carries the authoritative revision so the page can resynchronise.
+{% endcomment %}
+<span class="status-chip {{ status }}"
+      data-revision="{{ revision }}"
+      data-status="{{ status }}"
+      {% if feedback %}data-locked="1"{% endif %}>
+  {{ message }}{% if saved_at %} · {{ saved_at|date:"g:i:s A" }}{% endif %}
+  {% if status == 'conflict' %}
+    <a class="inline-link" href="">Reload to see the current answers</a>
+  {% endif %}
+  {% if feedback %}
+    <span class="feedback {% if feedback.is_correct %}correct{% else %}incorrect{% endif %}">
+      {% if feedback.is_correct %}Correct{% else %}Incorrect{% endif %}
+      {% if feedback.explanation %}· {{ feedback.explanation }}{% endif %}
+    </span>
+  {% endif %}
+</span>

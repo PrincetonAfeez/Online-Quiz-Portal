@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Activity log - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Administrative activity</h1>
+    {% include "admin_console/_nav.html" %}
+    <p class="muted">Append-only record of sensitive actions.</p>
+  </div>
+</section>
+
+<div class="panel">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">When</th>
+          <th scope="col">Actor</th>
+          <th scope="col">Action</th>
+          <th scope="col">Target</th>
+          <th scope="col">Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+          <tr>
+            <td>{{ entry.created_at|date:"M j, g:i A T" }}</td>
+            <td>{{ entry.actor|default:"system" }}</td>
+            <td>{{ entry.action }}</td>
+            <td>{{ entry.target_type }} {{ entry.target_id }}</td>
+            <td class="muted">{{ entry.detail }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">Nothing recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

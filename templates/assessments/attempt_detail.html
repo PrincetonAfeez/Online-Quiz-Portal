@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Attempt - QuizOps{% endblock %}
+{% block content %}
+<section class="attempt-shell">
+  <aside class="attempt-aside">
+    <p class="eyebrow">{{ attempt.assignment.title }}</p>
+    <h1>Attempt {{ attempt.attempt_number }}</h1>
+    {% if cutoff %}
+      {# Display only: the server owns expiry (ADR-0005). #}
+      <p id="countdown" class="countdown" data-cutoff="{{ cutoff.isoformat }}" role="timer" aria-live="off">
+        {{ cutoff|timeuntil }} remaining
+      </p>
+    {% endif %}
+    <dl class="summary-list">
+      <div><dt>Status</dt><dd>{{ attempt.get_status_display }}</dd></div>
+      <div><dt>Revision</dt><dd id="revision-label">{{ attempt.revision }}</dd></div>
+      {% if attempt.deadline_at %}
+        <div><dt>Deadline</dt><dd>{{ attempt.deadline_at|date:"M j, g:i A T" }}</dd></div>
+      {% endif %}
+      {% if attempt.assignment.closes_at %}
+        <div><dt>Closes</dt><dd>{{ attempt.assignment.closes_at|date:"M j, g:i A T" }}</dd></div>
+      {% endif %}
+      {% if attempt.applied_time_multiplier != 1 or attempt.applied_extra_minutes %}
+        <div>
+          <dt>Time accommodation</dt>
+          <dd>{{ attempt.applied_time_multiplier }}× + {{ attempt.applied_extra_minutes }}m</dd>
+        </div>
+      {% endif %}
+      {% if attempt.is_late %}<div><dt>Flagged</dt><dd>Late attempt</dd></div>{% endif %}
+    </dl>
+    <form method="post" action="{% url 'submit_attempt' attempt.id %}">
+      {% csrf_token %}
+      <button class="primary-button danger" type="submit">Submit attempt</button>
+    </form>
+    <p class="hint">Answers save individually. Submitting is final.</p>
+  </aside>
+
+  <section class="question-stack">
+    {% for question in questions %}
+      <article class="question-panel" id="question-{{ question.id }}">
+        <div class="question-head">
+          <h2>Question {{ forloop.counter }} <span class="muted">of {{ questions|length }}</span></h2>
+          <span class="pill">{{ question.points }} pts</span>
+        </div>
+        <form
+          method="post"
+          action="{% url 'save_answer' attempt.id question.id %}"
+          hx-post="{% url 'save_answer' attempt.id question.id %}"
+          hx-target="#q{{ question.id }}-status"
+          hx-swap="innerHTML"
+          class="choice-form"
+        >
+          {% csrf_token %}
+          <input class="revision-input" type="hidden" name="revision" value="{{ attempt.revision }}">
+          <fieldset {% if question.is_locked %}disabled{% endif %}>
+            <legend class="prompt">{{ question.prompt }}</legend>
+            {% if question.question_type == 'multi' %}
+              <p class="hint">Select every correct answer.</p>
+            {% endif %}
+            {% for choice in question.choices %}
+              <label class="choice">
+                <input
+                  type="{% if question.question_type == 'multi' %}checkbox{% else %}radio{% endif %}"
+                  name="choices"
+                  value="{{ choice.id }}"
+                  {% if choice.id in question.selected_choice_ids %}checked{% endif %}
+                >
+                <span>{{ choice.text }}</span>
+              </label>
+            {% endfor %}
+          </fieldset>
+          <div class="answer-actions">
+            <button class="secondary-button" type="submit" {% if question.is_locked %}disabled{% endif %}>
+              Save answer
+            </button>
+            <span id="q{{ question.id }}-status" class="save-status" role="status" aria-live="polite">
+              {% if question.is_locked %}Locked{% endif %}
+            </span>
+          </div>
+        </form>
+      </article>
+    {% empty %}
+      <p class="muted">This attempt has no questions. Contact your instructor.</p>
+    {% endfor %}
+  </section>
+</section>
+{% endblock %}

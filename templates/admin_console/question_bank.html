@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Question bank - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Question bank</h1>
+    {% include "admin_console/_nav.html" %}
+    <p class="muted">
+      {{ total }} item(s) match. Adding an item to a quiz copies it into that
+      draft, so later edits to either side stay independent.
+    </p>
+  </div>
+</section>
+
+<div class="panel">
+  <form method="get" class="inline-form">
+    <label class="visually-hidden" for="q">Search</label>
+    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search prompts">
+    <label class="visually-hidden" for="bank">Bank</label>
+    <select id="bank" name="bank">
+      <option value="">All banks</option>
+      {% for bank in banks %}
+        <option value="{{ bank.id }}" {% if bank_id == bank.id|stringformat:"s" %}selected{% endif %}>
+          {{ bank.name }}
+        </option>
+      {% endfor %}
+    </select>
+    <label class="visually-hidden" for="difficulty">Difficulty</label>
+    <select id="difficulty" name="difficulty">
+      <option value="">Any difficulty</option>
+      {% for value, label in difficulties %}
+        <option value="{{ value }}" {% if difficulty == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="secondary-button" type="submit">Search</button>
+  </form>
+
+  <div class="item-list">
+    {% for item in items %}
+      <article class="list-row">
+        <div>
+          <h3>{{ item.prompt|truncatechars:110 }}</h3>
+          <p>
+            {{ item.bank.name }} · {{ item.get_question_type_display }} ·
+            {{ item.get_difficulty_display }} · {{ item.points }} pts ·
+            {{ item.review_status }}{% if not item.reuse_allowed %} · reuse not allowed{% endif %}
+          </p>
+          {% if item.source_name %}
+            <p class="muted">Source: {{ item.source_name }} ({{ item.license_type }})</p>
+          {% endif %}
+        </div>
+        <span class="pill">{{ item.choices.count }} choices</span>
+      </article>
+    {% empty %}
+      <p class="muted">No items match this filter.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

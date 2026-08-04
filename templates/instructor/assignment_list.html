@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Assignments - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Assignments</h1>
+    {% include "instructor/_nav.html" %}
+  </div>
+  <a class="primary-button" href="{% url 'assignment_create' %}">New assignment</a>
+</section>
+
+<div class="panel">
+  <div class="item-list">
+    {% for assignment in assignments %}
+      <article class="list-row">
+        <div>
+          <h3>{{ assignment.title }}</h3>
+          <p>
+            {{ assignment.get_form_mode_display }} ·
+            {% if assignment.cohort %}{{ assignment.cohort }}{% elif assignment.course %}{{ assignment.course }}{% else %}whole organization{% endif %}
+          </p>
+          <p>
+            Opens {{ assignment.opens_at|date:"M j, g:i A T" }}
+            {% if assignment.closes_at %}· closes {{ assignment.closes_at|date:"M j, g:i A T" }}{% endif %}
+            {% if not assignment.is_active %}· <strong>inactive</strong>{% endif %}
+          </p>
+          <p>{{ assignment.finalized_total }} of {{ assignment.attempt_total }} attempts finalized</p>
+        </div>
+        <div class="answer-actions">
+          <a class="inline-link" href="{% url 'gradebook' assignment.id %}">Gradebook</a>
+          <a class="inline-link" href="{% url 'assignment_analytics' assignment.id %}">Analytics</a>
+          <a class="inline-link" href="{% url 'assignment_edit' assignment.id %}">Edit</a>
+        </div>
+      </article>
+    {% empty %}
+      <p class="muted">No assignments yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

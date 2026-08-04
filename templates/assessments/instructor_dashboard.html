@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Instructor - QuizOps{% endblock %}
+{% block content %}
+<section class="workspace-header">
+  <div>
+    <p class="eyebrow">{{ organization.name }}</p>
+    <h1>Instructor Workspace</h1>
+    <p class="muted">Scoped to {{ organization.name }} only.</p>
+  </div>
+  <a class="primary-button" href="/admin/">Admin</a>
+</section>
+
+<section class="split-grid">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Assignments</h2>
+    </div>
+    <div class="item-list">
+      {% for assignment in assignments %}
+        <article class="list-row">
+          <div>
+            <h3>{{ assignment.title }}</h3>
+            <p>{{ assignment.get_form_mode_display }} · Limit {{ assignment.attempt_limit }}
+               · {% if assignment.allow_late %}late allowed{% else %}no late attempts{% endif %}</p>
+            <p>{% if assignment.quiz_version %}{{ assignment.quiz_version }}{% else %}{{ assignment.item_pool }}{% endif %}</p>
+            {% if assignment.feedback_policy == 'manual' or assignment.quiz_version.feedback_policy == 'manual' %}
+              <form method="post" action="{% url 'toggle_result_release' assignment.id %}" class="inline-form">
+                {% csrf_token %}
+                {% if assignment.result_release.is_open %}
+                  <input type="hidden" name="is_open" value="0">
+                  <button class="secondary-button" type="submit">Withhold results</button>
+                  <span class="pill">Results released</span>
+                {% else %}
+                  <input type="hidden" name="is_open" value="1">
+                  <button class="secondary-button" type="submit">Release results</button>
+                  <span class="pill">Results withheld</span>
+                {% endif %}
+              </form>
+            {% endif %}
+          </div>
+          {# Annotated in the view; {{ assignment.attempts.count }} was one query per row. #}
+          <span class="pill">{{ assignment.attempt_total }} attempts</span>
+        </article>
+      {% empty %}
+        <p class="muted">Create assignments in the Django admin or seed the demo data.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Recent Gradebook</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption class="visually-hidden">Twenty most recent attempts</caption>
+        <thead>
+          <tr>
+            <th scope="col">Student</th>
+            <th scope="col">Assignment</th>
+            <th scope="col">Status</th>
+            <th scope="col">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attempt in attempts %}
+            <tr>
+              <td>{{ attempt.student }}</td>
+              <td>{{ attempt.assignment.title }}</td>
+              <td>{{ attempt.get_status_display }}{% if attempt.is_late %} · late{% endif %}</td>
+              <td>
+                {% if attempt.is_open %}—{% else %}{{ attempt.score }}/{{ attempt.max_score }}{% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4">No attempts yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}
